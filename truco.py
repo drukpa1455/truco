@@ -68,8 +68,14 @@ class State:
         """
         if len(self.table) == NUM_PLAYERS:
             card1, card2 = self.table
-            winner = 0 if RANKS.index(card1.rank) > RANKS.index(card2.rank) else 1
-            self.lead_player = winner
+            rank1, rank2 = RANKS.index(card1.rank), RANKS.index(card2.rank)
+            if rank1 > rank2:
+                winner = 0
+            elif rank2 > rank1:
+                winner = 1
+            else:
+                winner = None  # tie
+            self.lead_player = winner or self.lead_player
             return winner
         return None
 
@@ -129,15 +135,20 @@ class Judger:
                 break
 
             card = player.act(state)
-            state.play_card(card)
             if debug:
                 print(f"Current player: {player.name}")
                 print(f"{player.name} played {card}")
+            state.play_card(card)
             winner = state.get_winner()
             if winner is not None:
                 state.update_scores(winner)
+                print(f"\nRound winner: {judger.players[winner].name}")
                 state.table.clear()
                 state.current_player = state.lead_player
+                state = self.reset_game()
+            elif winner is None and len(state.table) == NUM_PLAYERS:
+                print("\nRound tied!")
+                state.table.clear()
                 state = self.reset_game()
             else:
                 state.next_player()
@@ -238,6 +249,10 @@ def play_game(debug: bool = False):
             print(f"\nRound winner: {judger.players[winner].name}")
             state.table.clear()
             state.current_player = state.lead_player
+            state = judger.reset_game()
+        elif winner is None and len(state.table) == NUM_PLAYERS:
+            print("\nRound tied!")
+            state.table.clear()
             state = judger.reset_game()
         else:
             state.next_player()
