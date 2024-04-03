@@ -225,9 +225,22 @@ def play_game(debug: bool = False):
     while state.winner is None:
         print(f"\nRound: {sum(state.scores) // 2 + 1}")
         print(f"Scores: {player1.name}: {state.scores[0]}, {player2.name}: {state.scores[1]}")
-        winner = judger.play(state, debug=debug)
-        if state.winner is None:
+        current_player = state.current_player
+        player = judger.players[current_player]
+        card = player.act(state)
+        if debug:
+            print(f"Current player: {player.name}")
+            print(f"{player.name} played {card}")
+        state.play_card(card)
+        winner = state.get_winner()
+        if winner is not None:
+            state.update_scores(winner)
+            print(f"\nRound winner: {judger.players[winner].name}")
+            state.table.clear()
+            state.current_player = state.lead_player
             state = judger.reset_game()
+        else:
+            state.next_player()
 
     if state.winner is None:
         print("\nGame ended in a tie!")
