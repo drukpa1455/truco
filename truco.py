@@ -193,6 +193,8 @@ def test_game():
     assert winner in [0, 1, None]  # Added None as a possible winner (tie)
     if winner is not None:
         assert state.scores[winner] >= WINNING_SCORE
+    else:
+        assert state.scores[0] == state.scores[1]  # Scores should be equal in case of a tie
 
 def play_game():
     """
