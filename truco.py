@@ -185,9 +185,9 @@ class HumanPlayer(Player):
                 card = Card(rank, suit)
                 if card in valid_moves:
                     return card
-                print("Invalid card. Please choose a card from your hand.")
             except (IndexError, ValueError):
                 print("Invalid input. Please enter a valid card (e.g., 4♠).")
+            print("Invalid card. Please choose a card from your hand.")
 
 def test_game():
     """
