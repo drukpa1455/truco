@@ -40,10 +40,9 @@ class State:
         Deals cards from the deck to the players' hands.
         """
         for _ in range(HAND_SIZE):
-            for player in range(NUM_PLAYERS):
+            for player, hand in enumerate(self.hands):
                 if deck:
-                    card = deck.pop()
-                    self.hands[player].append(card)
+                    hand.append(deck.pop())
 
     def play_card(self, card: Card) -> None:
         """
@@ -64,10 +63,7 @@ class State:
         """
         if len(self.table) == NUM_PLAYERS:
             card1, card2 = self.table
-            if RANKS.index(card1.rank) > RANKS.index(card2.rank):
-                return 0
-            else:
-                return 1
+            return 0 if RANKS.index(card1.rank) > RANKS.index(card2.rank) else 1
         return None
 
     def update_scores(self, winner: int) -> None:
@@ -99,7 +95,6 @@ class Judger:
         random.shuffle(deck)
         state = State()
 
-        # Ensure there are enough cards for all players
         if len(deck) < NUM_PLAYERS * HAND_SIZE:
             raise ValueError("Not enough cards in the deck for all players.")
 
@@ -113,25 +108,19 @@ class Judger:
         while state.winner is None:
             player = self.players[state.current_player]
             valid_moves = state.get_valid_moves()
-            
+
             if not valid_moves:
-                # If the current player has no valid moves, end the game
-                if state.scores[0] > state.scores[1]:
-                    state.winner = 0
-                elif state.scores[1] > state.scores[0]:
-                    state.winner = 1
-                else:
-                    state.winner = None  # Game ends in a tie
+                state.winner = None
                 break
-            
+
             card = player.act(state)
             state.play_card(card)
             winner = state.get_winner()
             if winner is not None:
                 state.update_scores(winner)
-                state.table = []  # Clear the table for the next round
+                state.table.clear()
             state.next_player()
-        
+
         return state.winner
 
 class Player:
@@ -148,8 +137,7 @@ class Player:
         valid_moves = state.get_valid_moves()
         if not valid_moves:
             raise ValueError(f"No valid moves available for {self.name}")
-        card = random.choice(valid_moves)
-        return card
+        return random.choice(valid_moves)
 
 class HumanPlayer(Player):
     """
@@ -161,16 +149,15 @@ class HumanPlayer(Player):
         """
         valid_moves = state.get_valid_moves()
         print(f"\n{self.name}'s turn")
-        print("Hand:", [str(card) for card in valid_moves])
+        print("Hand:", ", ".join(str(card) for card in valid_moves))
         while True:
+            card_str = input("Choose a card to play (e.g., 4♠): ")
             try:
-                card_str = input("Choose a card to play (e.g., 4♠): ")
                 rank, suit = card_str[:-1], card_str[-1]
                 card = Card(rank, suit)
                 if card in valid_moves:
                     return card
-                else:
-                    print("Invalid card. Please choose a card from your hand.")
+                print("Invalid card. Please choose a card from your hand.")
             except (IndexError, ValueError):
                 print("Invalid input. Please enter a valid card (e.g., 4♠).")
 
@@ -190,11 +177,11 @@ def test_game():
     assert state.winner is None
 
     winner = judger.play(state)
-    assert winner in [0, 1, None]  # Added None as a possible winner (tie)
+    assert winner in [0, 1, None]
     if winner is not None:
-        assert state.scores[winner] >= WINNING_SCORE
+        assert max(state.scores) >= WINNING_SCORE
     else:
-        assert state.scores[0] == state.scores[1]  # Scores should be equal in case of a tie
+        assert state.scores[0] == state.scores[1]
 
 def play_game():
     """
