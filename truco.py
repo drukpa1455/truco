@@ -80,6 +80,12 @@ class State:
         """
         self.current_player = (self.current_player + 1) % NUM_PLAYERS
 
+    def reset_scores(self) -> None:
+        """
+        Resets the scores of both players to zero.
+        """
+        self.scores = [0] * NUM_PLAYERS
+
 class Judger:
     """
     Manages the game flow and determines the winner.
@@ -116,6 +122,7 @@ class Judger:
                 other_valid_moves = state.hands[other_player]
                 if not other_valid_moves:
                     state.winner = None
+                    state.reset_scores()
                     break
                 # Otherwise, the other player wins
                 state.winner = other_player
@@ -187,7 +194,7 @@ def test_game():
     winner = judger.play(state)
     assert winner in [0, 1, None]
     if winner is None:
-        assert sum(state.scores) == 0  # Scores should be 0 in case of a tie
+        assert all(score == 0 for score in state.scores)  # All scores should be 0 in case of a tie
     else:
         assert max(state.scores) >= WINNING_SCORE
 
