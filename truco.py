@@ -141,9 +141,9 @@ class Judger:
             state.play_card(card)
             winner = state.get_winner()
             if winner is not None:
-                state.update_scores(winner)
                 print(f"\nRound: {sum(state.scores) // 2 + 1}")
                 print(f"Scores: {self.players[0].name}: {state.scores[0]}, {self.players[1].name}: {state.scores[1]}")
+                state.update_scores(winner)
                 print(f"Round winner: {self.players[winner].name}")
                 state.table.clear()
                 state.current_player = state.lead_player
@@ -246,9 +246,9 @@ def play_game(debug: bool = False):
         state.play_card(card)
         winner = state.get_winner()
         if winner is not None:
-            state.update_scores(winner)
             print(f"\nRound: {sum(state.scores) // 2 + 1}")
             print(f"Scores: {judger.players[0].name}: {state.scores[0]}, {judger.players[1].name}: {state.scores[1]}")
+            state.update_scores(winner)
             print(f"Round winner: {judger.players[winner].name}")
             state.table.clear()
             state.current_player = state.lead_player
