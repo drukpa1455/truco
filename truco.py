@@ -108,10 +108,22 @@ class Judger:
 
     def play(self, state: State) -> int:
         """
-        Plays the game until a winner is determined.
+        Plays the game until a winner is determined or the deck runs out of cards.
         """
         while state.winner is None:
             player = self.players[state.current_player]
+            valid_moves = state.get_valid_moves()
+            
+            if not valid_moves:
+                # If the current player has no valid moves, end the game
+                if state.scores[0] > state.scores[1]:
+                    state.winner = 0
+                elif state.scores[1] > state.scores[0]:
+                    state.winner = 1
+                else:
+                    state.winner = None  # Game ends in a tie
+                break
+            
             card = player.act(state)
             state.play_card(card)
             winner = state.get_winner()
@@ -119,6 +131,7 @@ class Judger:
                 state.update_scores(winner)
                 state.table = []  # Clear the table for the next round
             state.next_player()
+        
         return state.winner
 
 class Player:
@@ -177,8 +190,9 @@ def test_game():
     assert state.winner is None
 
     winner = judger.play(state)
-    assert winner in [0, 1]
-    assert state.scores[winner] >= WINNING_SCORE
+    assert winner in [0, 1, None]  # Added None as a possible winner (tie)
+    if winner is not None:
+        assert state.scores[winner] >= WINNING_SCORE
 
 def play_game():
     """
@@ -201,7 +215,10 @@ def play_game():
         winner = judger.play(state)
         state = judger.reset_game()
 
-    print(f"\nGame over! {judger.players[winner].name} wins!")
+    if state.winner is None:
+        print("\nGame ended in a tie!")
+    else:
+        print(f"\nGame over! {judger.players[winner].name} wins!")
 
 if __name__ == "__main__":
     test_game()
