@@ -138,7 +138,7 @@ class Judger:
                 state.update_scores(winner)
                 state.table.clear()
                 state.current_player = state.lead_player  # The winner of the trick leads the next trick
-                state = judger.reset_game()  # Reset the game state for the next trick
+                state = self.reset_game()  # Reset the game state for the next trick
             else:
                 state.next_player()
 
