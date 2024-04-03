@@ -142,12 +142,15 @@ class Judger:
             winner = state.get_winner()
             if winner is not None:
                 state.update_scores(winner)
-                print(f"\nRound winner: {judger.players[winner].name}")
+                print(f"\nRound: {sum(state.scores) // 2 + 1}")
+                print(f"Scores: {self.players[0].name}: {state.scores[0]}, {self.players[1].name}: {state.scores[1]}")
+                print(f"Round winner: {self.players[winner].name}")
                 state.table.clear()
                 state.current_player = state.lead_player
                 state = self.reset_game()
             elif winner is None and len(state.table) == NUM_PLAYERS:
                 print("\nRound tied!")
+                print(f"Scores: {self.players[0].name}: {state.scores[0]}, {self.players[1].name}: {state.scores[1]}")
                 state.table.clear()
                 state = self.reset_game()
             else:
@@ -234,8 +237,6 @@ def play_game(debug: bool = False):
     print(f"First to {WINNING_SCORE} points wins.")
 
     while state.winner is None:
-        print(f"\nRound: {sum(state.scores) // 2 + 1}")
-        print(f"Scores: {player1.name}: {state.scores[0]}, {player2.name}: {state.scores[1]}")
         current_player = state.current_player
         player = judger.players[current_player]
         card = player.act(state)
@@ -246,12 +247,15 @@ def play_game(debug: bool = False):
         winner = state.get_winner()
         if winner is not None:
             state.update_scores(winner)
-            print(f"\nRound winner: {judger.players[winner].name}")
+            print(f"\nRound: {sum(state.scores) // 2 + 1}")
+            print(f"Scores: {judger.players[0].name}: {state.scores[0]}, {judger.players[1].name}: {state.scores[1]}")
+            print(f"Round winner: {judger.players[winner].name}")
             state.table.clear()
             state.current_player = state.lead_player
             state = judger.reset_game()
         elif winner is None and len(state.table) == NUM_PLAYERS:
             print("\nRound tied!")
+            print(f"Scores: {judger.players[0].name}: {state.scores[0]}, {judger.players[1].name}: {state.scores[1]}")
             state.table.clear()
             state = judger.reset_game()
         else:
