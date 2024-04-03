@@ -11,6 +11,9 @@ HAND_SIZE = 3
 WINNING_SCORE = 12
 
 class Card:
+    """
+    Represents a playing card with a rank and a suit.
+    """
     def __init__(self, rank: str, suit: str):
         self.rank = rank
         self.suit = suit
@@ -18,7 +21,13 @@ class Card:
     def __str__(self) -> str:
         return f"{self.rank}{self.suit}"
 
+    def __repr__(self) -> str:
+        return f"Card('{self.rank}', '{self.suit}')"
+
 class State:
+    """
+    Represents the current state of the game.
+    """
     def __init__(self):
         self.hands: List[List[Card]] = [[] for _ in range(NUM_PLAYERS)]
         self.table: List[Card] = []
@@ -27,19 +36,32 @@ class State:
         self.winner: int = None
 
     def deal_cards(self, deck: List[Card]) -> None:
+        """
+        Deals cards from the deck to the players' hands.
+        """
         for _ in range(HAND_SIZE):
             for player in range(NUM_PLAYERS):
-                card = deck.pop()
-                self.hands[player].append(card)
+                if deck:
+                    card = deck.pop()
+                    self.hands[player].append(card)
 
     def play_card(self, card: Card) -> None:
+        """
+        Plays a card from the current player's hand to the table.
+        """
         self.table.append(card)
         self.hands[self.current_player].remove(card)
 
     def get_valid_moves(self) -> List[Card]:
+        """
+        Returns the list of valid cards the current player can play.
+        """
         return self.hands[self.current_player]
 
     def get_winner(self) -> int:
+        """
+        Determines the winner of the current round.
+        """
         if len(self.table) == NUM_PLAYERS:
             card1, card2 = self.table
             if RANKS.index(card1.rank) > RANKS.index(card2.rank):
@@ -49,18 +71,30 @@ class State:
         return None
 
     def update_scores(self, winner: int) -> None:
+        """
+        Updates the scores based on the winner of the round.
+        """
         self.scores[winner] += 1
         if self.scores[winner] >= WINNING_SCORE:
             self.winner = winner
 
     def next_player(self) -> None:
+        """
+        Moves to the next player's turn.
+        """
         self.current_player = (self.current_player + 1) % NUM_PLAYERS
 
 class Judger:
+    """
+    Manages the game flow and determines the winner.
+    """
     def __init__(self, player1, player2):
         self.players = [player1, player2]
 
     def reset_game(self) -> State:
+        """
+        Resets the game state and deals cards to the players.
+        """
         deck = [Card(rank, suit) for rank in RANKS for suit in SUITS]
         random.shuffle(deck)
         state = State()
@@ -68,6 +102,9 @@ class Judger:
         return state
 
     def play(self, state: State) -> int:
+        """
+        Plays the game until a winner is determined.
+        """
         while state.winner is None:
             player = self.players[state.current_player]
             card = player.act(state)
@@ -75,20 +112,35 @@ class Judger:
             winner = state.get_winner()
             if winner is not None:
                 state.update_scores(winner)
+                state.table = []  # Clear the table for the next round
             state.next_player()
         return state.winner
 
 class Player:
+    """
+    Represents a player in the game.
+    """
     def __init__(self, name: str):
         self.name = name
 
     def act(self, state: State) -> Card:
+        """
+        Selects a card to play based on the current state.
+        """
         valid_moves = state.get_valid_moves()
+        if not valid_moves:
+            raise ValueError(f"No valid moves available for {self.name}")
         card = random.choice(valid_moves)
         return card
 
 class HumanPlayer(Player):
+    """
+    Represents a human player who interacts through the console.
+    """
     def act(self, state: State) -> Card:
+        """
+        Prompts the human player to select a card to play.
+        """
         valid_moves = state.get_valid_moves()
         print(f"\n{self.name}'s turn")
         print("Hand:", [str(card) for card in valid_moves])
@@ -105,6 +157,9 @@ class HumanPlayer(Player):
                 print("Invalid input. Please enter a valid card (e.g., 4♠).")
 
 def test_game():
+    """
+    Runs a test game simulation with two AI players.
+    """
     player1 = Player("Player 1")
     player2 = Player("Player 2")
     judger = Judger(player1, player2)
@@ -121,6 +176,9 @@ def test_game():
     assert state.scores[winner] >= WINNING_SCORE
 
 def play_game():
+    """
+    Starts an interactive game session with human players.
+    """
     player1_name = input("Enter the name of Player 1: ")
     player2_name = input("Enter the name of Player 2: ")
 
