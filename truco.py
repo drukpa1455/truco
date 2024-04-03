@@ -138,6 +138,7 @@ class Judger:
                 state.update_scores(winner)
                 state.table.clear()
                 state.current_player = state.lead_player  # The winner of the trick leads the next trick
+                state = judger.reset_game()  # Reset the game state for the next trick
             else:
                 state.next_player()
 
@@ -229,9 +230,9 @@ def play_game():
             state.update_scores(winner)
             state.table.clear()
             state.current_player = state.lead_player  # The winner of the trick leads the next trick
+            state = judger.reset_game()  # Reset the game state for the next trick
         else:
             state.next_player()
-        state = judger.reset_game()
 
     if state.winner is None:
         print("\nGame ended in a tie!")
