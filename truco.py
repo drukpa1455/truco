@@ -99,6 +99,12 @@ class State:
         """
         self.scores = [0] * NUM_PLAYERS
 
+    def reset_hands(self) -> None:
+        """
+        Resets the players' hands to empty lists.
+        """
+        self.hands = [[] for _ in range(NUM_PLAYERS)]
+
 class Judger:
     """
     Manages the game flow and determines the winner.
@@ -147,12 +153,12 @@ class Judger:
                 print(f"Round winner: {self.players[winner].name}")
                 state.table.clear()
                 state.current_player = state.lead_player
-                state = self.reset_game()
+                state.reset_hands()  # Reset players' hands
             elif winner is None and len(state.table) == NUM_PLAYERS:
                 print("\nRound tied!")
                 print(f"Scores: {self.players[0].name}: {state.scores[0]}, {self.players[1].name}: {state.scores[1]}")
                 state.table.clear()
-                state = self.reset_game()
+                state.reset_hands()  # Reset players' hands
             else:
                 state.next_player()
 
@@ -252,12 +258,12 @@ def play_game(debug: bool = False):
             print(f"Round winner: {judger.players[winner].name}")
             state.table.clear()
             state.current_player = state.lead_player
-            state = judger.reset_game()
+            state.reset_hands()  # Reset players' hands
         elif winner is None and len(state.table) == NUM_PLAYERS:
             print("\nRound tied!")
             print(f"Scores: {judger.players[0].name}: {state.scores[0]}, {judger.players[1].name}: {state.scores[1]}")
             state.table.clear()
-            state = judger.reset_game()
+            state.reset_hands()  # Reset players' hands
         else:
             state.next_player()
 
