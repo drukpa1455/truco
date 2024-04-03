@@ -141,9 +141,6 @@ class Judger:
             else:
                 state.next_player()
 
-            # Reset the table and move to the next player after each card played
-            state.table.clear()
-
         return state.winner
 
 class Player:
@@ -223,7 +220,17 @@ def play_game():
     while state.winner is None:
         print(f"\nRound: {sum(state.scores) // 2 + 1}")
         print(f"Scores: {player1.name}: {state.scores[0]}, {player2.name}: {state.scores[1]}")
-        winner = judger.play(state)
+        current_player = state.current_player
+        player = judger.players[current_player]
+        card = player.act(state)
+        state.play_card(card)
+        winner = state.get_winner()
+        if winner is not None:
+            state.update_scores(winner)
+            state.table.clear()
+            state.current_player = state.lead_player  # The winner of the trick leads the next trick
+        else:
+            state.next_player()
         state = judger.reset_game()
 
     if state.winner is None:
