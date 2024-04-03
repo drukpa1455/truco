@@ -25,6 +25,9 @@ class Card:
     def __repr__(self) -> str:
         return f"Card('{self.rank}', '{self.suit}')"
 
+    def __eq__(self, other):
+        return self.rank == other.rank and self.suit == other.suit
+
 class State:
     """
     Represents the current state of the game.
@@ -35,14 +38,14 @@ class State:
         self.current_player: int = 0
         self.scores: List[int] = [0] * NUM_PLAYERS
         self.winner: int = None
-        self.lead_player: int = 0  # The player who leads the current trick
+        self.lead_player: int = 0
 
     def deal_cards(self, deck: List[Card]) -> None:
         """
         Deals cards from the deck to the players' hands.
         """
         for _ in range(HAND_SIZE):
-            for player, hand in enumerate(self.hands):
+            for hand in self.hands:
                 if deck:
                     hand.append(deck.pop())
 
@@ -104,10 +107,6 @@ class Judger:
         deck = [Card(rank, suit) for rank in RANKS for suit in SUITS]
         random.shuffle(deck)
         state = State()
-
-        if len(deck) < NUM_PLAYERS * HAND_SIZE:
-            raise ValueError("Not enough cards in the deck for all players.")
-
         state.deal_cards(deck)
         return state
 
@@ -120,15 +119,12 @@ class Judger:
             valid_moves = state.get_valid_moves()
 
             if not valid_moves:
-                # If the current player has no valid moves,
-                # the game ends in a tie if both players are out of cards
                 other_player = (state.current_player + 1) % NUM_PLAYERS
                 other_valid_moves = state.hands[other_player]
                 if not other_valid_moves:
                     state.winner = None
                     state.reset_scores()
                     break
-                # Otherwise, the other player wins
                 state.winner = other_player
                 break
 
@@ -141,8 +137,8 @@ class Judger:
             if winner is not None:
                 state.update_scores(winner)
                 state.table.clear()
-                state.current_player = state.lead_player  # The winner of the trick leads the next trick
-                state = self.reset_game()  # Reset the game state for the next trick
+                state.current_player = state.lead_player
+                state = self.reset_game()
             else:
                 state.next_player()
 
@@ -207,7 +203,7 @@ def test_game():
     winner = judger.play(state)
     assert winner in [0, 1, None]
     if winner is None:
-        assert all(score == 0 for score in state.scores)  # All scores should be 0 in case of a tie
+        assert all(score == 0 for score in state.scores)
     else:
         assert max(state.scores) >= WINNING_SCORE
 
@@ -241,8 +237,9 @@ def play_game(debug: bool = False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Play the Truco card game")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
-    parser.add_argument("--test", action="store_true", help="Run test game with AI players")
-    parser.add_argument("--play", action="store_true", help="Start an interactive game session")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--test", action="store_true", help="Run test game with AI players")
+    group.add_argument("--play", action="store_true", help="Start an interactive game session")
 
     args = parser.parse_args()
 
@@ -251,4 +248,4 @@ if __name__ == "__main__":
     elif args.play:
         play_game(debug=args.debug)
     else:
-        print("Please specify either --test or --play to run the game.")
+        parser.print_help()
