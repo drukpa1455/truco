@@ -141,6 +141,10 @@ class Judger:
             else:
                 state.next_player()
 
+            # Reset the table after each trick
+            if len(state.table) == NUM_PLAYERS:
+                state.table.clear()
+
         return state.winner
 
 class Player:
