@@ -1,5 +1,6 @@
 from typing import List, Tuple
 import random
+import argparse
 
 # Card constants
 RANKS = ["4", "5", "6", "7", "Q", "J", "K", "A", "2", "3"]
@@ -110,7 +111,7 @@ class Judger:
         state.deal_cards(deck)
         return state
 
-    def play(self, state: State) -> int:
+    def play(self, state: State, debug: bool = False) -> int:
         """
         Plays the game until a winner is determined or the deck runs out of cards.
         """
@@ -133,6 +134,9 @@ class Judger:
 
             card = player.act(state)
             state.play_card(card)
+            if debug:
+                print(f"Current player: {player.name}")
+                print(f"{player.name} played {card}")
             winner = state.get_winner()
             if winner is not None:
                 state.update_scores(winner)
@@ -172,12 +176,16 @@ class HumanPlayer(Player):
         print(f"\n{self.name}'s turn")
         print("Hand:", ", ".join(str(card) for card in valid_moves))
         while True:
-            card_str = input("Choose a card to play (e.g., 4♠): ")
+            card_str = input("Choose a card to play (e.g., 4♠): ").strip()
+            if not card_str:
+                print("Invalid input. Please enter a valid card (e.g., 4♠).")
+                continue
             try:
                 rank, suit = card_str[:-1], card_str[-1]
                 card = Card(rank, suit)
                 if card in valid_moves:
                     return card
+                print("Invalid card. Please choose a card from your hand.")
             except (IndexError, ValueError):
                 print("Invalid input. Please enter a valid card (e.g., 4♠).")
 
@@ -203,7 +211,7 @@ def test_game():
     else:
         assert max(state.scores) >= WINNING_SCORE
 
-def play_game():
+def play_game(debug: bool = False):
     """
     Starts an interactive game session with human players.
     """
@@ -221,18 +229,9 @@ def play_game():
     while state.winner is None:
         print(f"\nRound: {sum(state.scores) // 2 + 1}")
         print(f"Scores: {player1.name}: {state.scores[0]}, {player2.name}: {state.scores[1]}")
-        current_player = state.current_player
-        player = judger.players[current_player]
-        card = player.act(state)
-        state.play_card(card)
-        winner = state.get_winner()
-        if winner is not None:
-            state.update_scores(winner)
-            state.table.clear()
-            state.current_player = state.lead_player  # The winner of the trick leads the next trick
-            state = judger.reset_game()  # Reset the game state for the next trick
-        else:
-            state.next_player()
+        winner = judger.play(state, debug=debug)
+        if state.winner is None:
+            state = judger.reset_game()
 
     if state.winner is None:
         print("\nGame ended in a tie!")
@@ -240,5 +239,16 @@ def play_game():
         print(f"\nGame over! {judger.players[winner].name} wins!")
 
 if __name__ == "__main__":
-    test_game()
-    play_game()
+    parser = argparse.ArgumentParser(description="Play the Truco card game")
+    parser.add_argument("--debug", action="store_true", help="Enable debug mode")
+    parser.add_argument("--test", action="store_true", help="Run test game with AI players")
+    parser.add_argument("--play", action="store_true", help="Start an interactive game session")
+
+    args = parser.parse_args()
+
+    if args.test:
+        test_game()
+    elif args.play:
+        play_game(debug=args.debug)
+    else:
+        print("Please specify either --test or --play to run the game.")
