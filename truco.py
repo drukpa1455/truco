@@ -98,6 +98,11 @@ class Judger:
         deck = [Card(rank, suit) for rank in RANKS for suit in SUITS]
         random.shuffle(deck)
         state = State()
+
+        # Ensure there are enough cards for all players
+        if len(deck) < NUM_PLAYERS * HAND_SIZE:
+            raise ValueError("Not enough cards in the deck for all players.")
+
         state.deal_cards(deck)
         return state
 
