@@ -113,7 +113,8 @@ class Judger:
                 # If the current player has no valid moves,
                 # the game ends in a tie if both players are out of cards
                 other_player = (state.current_player + 1) % NUM_PLAYERS
-                if not state.get_valid_moves():
+                other_valid_moves = state.hands[other_player]
+                if not other_valid_moves:
                     state.winner = None
                     break
                 # Otherwise, the other player wins
@@ -185,10 +186,10 @@ def test_game():
 
     winner = judger.play(state)
     assert winner in [0, 1, None]
-    if winner == 0 or winner == 1:
-        assert max(state.scores) >= WINNING_SCORE
+    if winner is None:
+        assert sum(state.scores) == 0  # Scores should be 0 in case of a tie
     else:
-        assert state.scores[0] == state.scores[1]
+        assert max(state.scores) >= WINNING_SCORE
 
 def play_game():
     """
