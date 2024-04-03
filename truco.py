@@ -34,6 +34,7 @@ class State:
         self.current_player: int = 0
         self.scores: List[int] = [0] * NUM_PLAYERS
         self.winner: int = None
+        self.lead_player: int = 0  # The player who leads the current trick
 
     def deal_cards(self, deck: List[Card]) -> None:
         """
@@ -59,16 +60,18 @@ class State:
 
     def get_winner(self) -> int:
         """
-        Determines the winner of the current round.
+        Determines the winner of the current trick.
         """
         if len(self.table) == NUM_PLAYERS:
             card1, card2 = self.table
-            return 0 if RANKS.index(card1.rank) > RANKS.index(card2.rank) else 1
+            winner = 0 if RANKS.index(card1.rank) > RANKS.index(card2.rank) else 1
+            self.lead_player = winner
+            return winner
         return None
 
     def update_scores(self, winner: int) -> None:
         """
-        Updates the scores based on the winner of the round.
+        Updates the scores based on the winner of the trick.
         """
         self.scores[winner] += 1
         if self.scores[winner] >= WINNING_SCORE:
@@ -134,7 +137,9 @@ class Judger:
             if winner is not None:
                 state.update_scores(winner)
                 state.table.clear()
-            state.next_player()
+                state.current_player = state.lead_player  # The winner of the trick leads the next trick
+            else:
+                state.next_player()
 
         return state.winner
 
