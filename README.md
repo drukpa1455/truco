@@ -1,0 +1,2 @@
+# truco
+rl truco
