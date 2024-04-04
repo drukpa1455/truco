@@ -38,6 +38,21 @@ Let's create Reinforcement Learning implementations for [Truco](https://en.wikip
    cd truco
    ```
 
+## Files
+
+- `truco_full.py`: The complete implementation of the Truco game with all the features.
+- `truco_simple.py`: A simplified version of the Truco game with basic gameplay mechanics.
+
+### Usage
+
+To start a game of Truco, run the following command:
+
+```
+python truco_full.py
+```
+
+Follow the on-screen prompts to enter the names of the players and play the game. The game will continue until one player reaches the winning score.
+
 To run the game in debug mode, use the following command:
 
 ```
@@ -55,21 +70,6 @@ To start an interactive game session without debug prints, use:
 ```
 python truco_simple.py --play
 ```
-
-### Usage
-
-To start a game of Truco, run the following command:
-
-```
-python truco_full.py
-```
-
-Follow the on-screen prompts to enter the names of the players and play the game. The game will continue until one player reaches the winning score.
-
-## Files
-
-- `truco_full.py`: The complete implementation of the Truco game with all the features.
-- `truco_simple.py`: A simplified version of the Truco game with basic gameplay mechanics.
 
 ## Contributing
 
