@@ -75,7 +75,7 @@ class State:
                 winner = 1
             else:
                 winner = None  # tie
-            self.lead_player = winner or self.lead_player
+            self.lead_player = winner if winner is not None else self.lead_player
             return winner
         return None
 
@@ -93,17 +93,13 @@ class State:
         """
         self.current_player = (self.current_player + 1) % NUM_PLAYERS
 
-    def reset_scores(self) -> None:
+    def reset_round(self, deck: List[Card]) -> None:
         """
-        Resets the scores of both players to zero.
+        Resets the round by clearing the table, resetting the players' hands, and dealing new cards.
         """
-        self.scores = [0] * NUM_PLAYERS
-
-    def reset_hands(self) -> None:
-        """
-        Resets the players' hands to empty lists.
-        """
+        self.table.clear()
         self.hands = [[] for _ in range(NUM_PLAYERS)]
+        self.deal_cards(deck)
 
 class Judger:
     """
@@ -116,13 +112,10 @@ class Judger:
         """
         Resets the game state and deals cards to the players.
         """
-        deck = [Card(rank, suit) for rank in RANKS for suit in SUITS]
-        random.shuffle(deck)
         state = State()
-        state.deal_cards(deck)
         return state
 
-    def play(self, state: State, debug: bool = False) -> int:
+    def play(self, state: State, deck: List[Card], debug: bool = False) -> int:
         """
         Plays the game until a winner is determined or the deck runs out of cards.
         """
@@ -135,7 +128,6 @@ class Judger:
                 other_valid_moves = state.hands[other_player]
                 if not other_valid_moves:
                     state.winner = None
-                    state.reset_scores()
                     break
                 state.winner = other_player
                 break
@@ -151,14 +143,12 @@ class Judger:
                 print(f"\nRound: {sum(state.scores) // 2 + 1}")
                 print(f"Scores: {self.players[0].name}: {state.scores[0]}, {self.players[1].name}: {state.scores[1]}")
                 print(f"Round winner: {self.players[winner].name}")
-                state.table.clear()
                 state.current_player = state.lead_player
-                state.reset_hands()  # Reset players' hands
+                state.reset_round(deck)  # Reset the round and deal new cards
             elif winner is None and len(state.table) == NUM_PLAYERS:
                 print("\nRound tied!")
                 print(f"Scores: {self.players[0].name}: {state.scores[0]}, {self.players[1].name}: {state.scores[1]}")
-                state.table.clear()
-                state.reset_hands()  # Reset players' hands
+                state.reset_round(deck)  # Reset the round and deal new cards
             else:
                 state.next_player()
 
@@ -214,16 +204,20 @@ def test_game():
     judger = Judger(player1, player2)
 
     state = judger.reset_game()
+    deck = [Card(rank, suit) for rank in RANKS for suit in SUITS]
+    random.shuffle(deck)
+    state.deal_cards(deck)
+
     assert len(state.hands[0]) == HAND_SIZE
     assert len(state.hands[1]) == HAND_SIZE
     assert state.current_player == 0
     assert state.scores == [0, 0]
     assert state.winner is None
 
-    winner = judger.play(state)
+    winner = judger.play(state, deck)
     assert winner in [0, 1, None]
     if winner is None:
-        assert all(score == 0 for score in state.scores)
+        assert max(state.scores) < WINNING_SCORE
     else:
         assert max(state.scores) >= WINNING_SCORE
 
@@ -239,33 +233,15 @@ def play_game(debug: bool = False):
     judger = Judger(player1, player2)
 
     state = judger.reset_game()
+    deck = [Card(rank, suit) for rank in RANKS for suit in SUITS]
+    random.shuffle(deck)
+    state.deal_cards(deck)
+
     print(f"\nGame started! {player1.name} vs {player2.name}")
     print(f"First to {WINNING_SCORE} points wins.")
 
     while state.winner is None:
-        current_player = state.current_player
-        player = judger.players[current_player]
-        card = player.act(state)
-        if debug:
-            print(f"Current player: {player.name}")
-            print(f"{player.name} played {card}")
-        state.play_card(card)
-        winner = state.get_winner()
-        if winner is not None:
-            state.update_scores(winner)
-            print(f"\nRound: {sum(state.scores) // 2 + 1}")
-            print(f"Scores: {judger.players[0].name}: {state.scores[0]}, {judger.players[1].name}: {state.scores[1]}")
-            print(f"Round winner: {judger.players[winner].name}")
-            state.table.clear()
-            state.current_player = state.lead_player
-            state.reset_hands()  # Reset players' hands
-        elif winner is None and len(state.table) == NUM_PLAYERS:
-            print("\nRound tied!")
-            print(f"Scores: {judger.players[0].name}: {state.scores[0]}, {judger.players[1].name}: {state.scores[1]}")
-            state.table.clear()
-            state.reset_hands()  # Reset players' hands
-        else:
-            state.next_player()
+        winner = judger.play(state, deck, debug=debug)
 
     if state.winner is None:
         print("\nGame ended in a tie!")
