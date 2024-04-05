@@ -8,8 +8,8 @@ gameplay mechanics and additional features such as Truco, Envido, and Flor.
 The game is designed to be played by two players, each starting with three cards.
 The objective is to win the most rounds and reach a certain number of points.
 
-Author: Your Name
-Date: YYYY-MM-DD
+Author: Drukpa Kunley
+Date: 2024-04-04
 """
 
 from typing import List, Tuple, Optional

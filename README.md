@@ -12,10 +12,14 @@ Let's create Reinforcement Learning implementations for [Truco](https://en.wikip
 - Support for two players
 - Interactive command-line interface
 - Truco: Players can call "Truco" to raise the stakes and potentially win more points
+- Retruco and Vale Cuatro: Players can further raise the stakes with "Retruco" and "Vale Cuatro" calls
 - Envido: Players can bet on the strength of their hand based on the sum of the values of two cards of the same suit
 - Flor: Players can bet on having three cards of the same suit
+- Contra Flor al Resto: Players can counter the Flor bet with a higher Flor
 - Passing turns: Players can choose to pass their turn
 - Mazo: If both players pass consecutively, a card is drawn from the deck to determine the winner of the round
+- Resign: Players can resign the game, declaring the opponent as the winner
+- Replay: Players have the option to play another game after the current one ends
 - Separate scoring system for Truco, Envido, and Flor
 
 ## Getting Started
@@ -28,48 +32,29 @@ Let's create Reinforcement Learning implementations for [Truco](https://en.wikip
 
 1. Clone the repository:
 
-   ```
-   git clone https://github.com/your-username/truco.git
-   ```
+```git clone https://github.com/your-username/truco.git```
 
 2. Navigate to the project directory:
 
-   ```
-   cd truco
-   ```
+```cd truco```
 
 ## Files
 
-- `truco_full.py`: The complete implementation of the Truco game with all the features.
-- `truco_simple.py`: A simplified version of the Truco game with basic gameplay mechanics.
+- `main.py`: The main game loop and user interaction.
+- `game.py`: Contains the `Game` class and game-related constants.
+- `player.py`: Contains the `Player` class.
+- `deck.py`: Contains the `Deck` class.
+- `card.py`: Contains the `Card` class.
+- `truco_min.py`: A simplified version of the Truco game with basic gameplay mechanics in a single file.
+- `truco_med.py`: A medium-complexity version of the Truco game with additional features in a single file.
 
 ### Usage
 
 To start a game of Truco, run the following command:
 
-```
-python truco_full.py
-```
+```python main.py```
 
-Follow the on-screen prompts to enter the names of the players and play the game. The game will continue until one player reaches the winning score.
-
-To run the game in debug mode, use the following command:
-
-```
-python truco_simple.py --play --debug
-```
-
-To run the test game with AI players, use:
-
-```
-python truco_simple.py --test
-```
-
-To start an interactive game session without debug prints, use:
-
-```
-python truco_simple.py --play
-```
+Follow the on-screen prompts to enter the names of the players, choose the game settings, and play the game. The game will continue until one player reaches the winning score or chooses to stop playing.
 
 ## Contributing
 
