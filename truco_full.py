@@ -3,13 +3,13 @@ Truco Game
 ==========
 
 This module contains the implementation of the Truco card game, including the basic
-gameplay mechanics and additional features such as Truco, Envido, Flor, and Mazo.
+gameplay mechanics and additional features such as Truco, Envido, and Flor.
 
 The game is designed to be played by two players, each starting with three cards.
 The objective is to win the most rounds and reach a certain number of points.
 
-Author: Drukpa Kunley
-Date: 2024-04-04
+Author: Your Name
+Date: YYYY-MM-DD
 """
 
 from typing import List, Tuple, Optional
@@ -22,9 +22,44 @@ SUITS = ["♠", "♥", "♣", "♦"]
 # Game constants
 NUM_PLAYERS = 2
 HAND_SIZE = 3
-WINNING_SCORE = 12
-TRUCO_POINTS = 3
-ENVIDO_POINTS = 2
+WINNING_SCORE = 30
+TRUCO_POINTS = 2
+ENVIDO_POINTS = {
+    0: 0,
+    1: 1,
+    2: 2,
+    3: 3,
+    4: 4,
+    5: 5,
+    6: 6,
+    7: 7,
+    8: 8,
+    9: 9,
+    10: 10,
+    11: 11,
+    12: 12,
+    13: 13,
+    14: 14,
+    15: 15,
+    16: 16,
+    17: 17,
+    18: 18,
+    19: 19,
+    20: 20,
+    21: 21,
+    22: 22,
+    23: 23,
+    24: 24,
+    25: 25,
+    26: 26,
+    27: 27,
+    28: 28,
+    29: 29,
+    30: 30,
+    31: 31,
+    32: 32,
+    33: 33
+}
 FLOR_POINTS = 3
 
 class Card:
@@ -53,9 +88,6 @@ class Player:
     def __init__(self, name: str):
         self.name = name
         self.hand: List[Card] = []
-        self.score = 0
-        self.envido_score = 0
-        self.flor_score = 0
 
     def __str__(self) -> str:
         return self.name
@@ -96,12 +128,13 @@ class Game:
         self.lead_player = 0
         self.table: List[Card] = []
         self.truco_called = False
-        self.truco_accepted = False
+        self.truco_value = 1
         self.envido_called = False
-        self.envido_accepted = False
+        self.envido_value = 0
         self.flor_called = False
-        self.flor_accepted = False
-        self.mazo_drawn = False
+        self.flor_value = 0
+        self.round_number = 1
+        self.scores = [0, 0]
 
     def deal(self) -> None:
         """
@@ -144,69 +177,34 @@ class Game:
         """
         Updates the scores based on the winner of the round.
         """
-        if self.truco_accepted:
-            self.players[winner].score += TRUCO_POINTS
-        else:
-            self.players[winner].score += 1
+        self.scores[winner] += self.truco_value
+        self.scores[winner] += self.envido_value
+        self.scores[winner] += self.flor_value
 
-        if self.envido_accepted:
-            envido_winner = self.get_envido_winner()
-            self.players[envido_winner].envido_score += ENVIDO_POINTS
-
-        if self.flor_accepted:
-            flor_winner = self.get_flor_winner()
-            self.players[flor_winner].flor_score += FLOR_POINTS
-
-        if self.players[winner].score >= WINNING_SCORE:
+        if self.scores[winner] >= WINNING_SCORE:
             raise GameOver(winner)
 
-    def get_envido_winner(self) -> int:
+    def get_envido_points(self, player_index: int) -> int:
         """
-        Determines the winner of the Envido.
+        Calculates the Envido points for a player.
         """
-        envido_scores = [self.calculate_envido_score(player.hand) for player in self.players]
-        if envido_scores[0] > envido_scores[1]:
-            return 0
-        elif envido_scores[1] > envido_scores[0]:
-            return 1
-        else:
-            return None  # Tie
+        player_hand = self.players[player_index].hand
+        envido_cards = [card for card in player_hand if card.rank in ["7", "6", "5", "4"]]
+        if len(envido_cards) >= 2:
+            envido_cards.sort(key=lambda card: RANKS.index(card.rank))
+            envido_ranks = [RANKS.index(card.rank) for card in envido_cards[:2]]
+            envido_value = sum(envido_ranks) + 20
+            return ENVIDO_POINTS.get(envido_value, 0)
+        return 0
 
-    def calculate_envido_score(self, hand: List[Card]) -> int:
+    def get_flor_points(self, player_index: int) -> int:
         """
-        Calculates the Envido score for a given hand.
+        Calculates the Flor points for a player.
         """
-        suit_scores = {}
-        for card in hand:
-            if card.suit not in suit_scores:
-                suit_scores[card.suit] = 0
-            if card.rank in ["J", "Q", "K"]:
-                suit_scores[card.suit] += 10
-            elif card.rank == "A":
-                suit_scores[card.suit] += 11
-            elif card.rank in ["2", "3"]:
-                suit_scores[card.suit] += int(card.rank)
-        return max(suit_scores.values(), default=0)
-
-    def get_flor_winner(self) -> Optional[int]:
-        """
-        Determines the winner of the Flor.
-        """
-        flor_scores = [self.calculate_flor_score(player.hand) for player in self.players]
-        if flor_scores[0] > flor_scores[1]:
-            return 0
-        elif flor_scores[1] > flor_scores[0]:
-            return 1
-        else:
-            return None  # Tie
-
-    def calculate_flor_score(self, hand: List[Card]) -> int:
-        """
-        Calculates the Flor score for a given hand.
-        """
-        suits = [card.suit for card in hand]
-        if len(set(suits)) == 1:
-            return sum(RANKS.index(card.rank) for card in hand)
+        player_hand = self.players[player_index].hand
+        suits = set(card.suit for card in player_hand)
+        if len(suits) == 1:
+            return FLOR_POINTS
         return 0
 
     def next_player(self) -> None:
@@ -223,38 +221,37 @@ class Game:
         for player in self.players:
             player.hand.clear()
         self.truco_called = False
-        self.truco_accepted = False
+        self.truco_value = 1
         self.envido_called = False
-        self.envido_accepted = False
+        self.envido_value = 0
         self.flor_called = False
-        self.flor_accepted = False
-        self.mazo_drawn = False
+        self.flor_value = 0
+        self.round_number += 1
 
     def play_round(self) -> None:
         """
         Plays a single round of the game.
         """
+        print(f"\nRound {self.round_number}")
         self.deal()
         while True:
             player = self.players[self.current_player]
             print(f"\n{player}'s turn")
             print("Hand:", ", ".join(str(card) for card in player.hand))
+            print(f"Scores: {self.players[0]}: {self.scores[0]} | {self.players[1]}: {self.scores[1]}")
 
             if not self.truco_called:
                 truco_input = input("Do you want to call Truco? (y/n): ").lower()
                 if truco_input == "y":
                     self.truco_called = True
+                    self.truco_value = TRUCO_POINTS
                     other_player = self.players[(self.current_player + 1) % NUM_PLAYERS]
                     print(f"\n{player} calls Truco!")
                     truco_response = input(f"{other_player}, do you accept Truco? (y/n): ").lower()
-                    if truco_response == "y":
-                        self.truco_accepted = True
-                        print(f"{other_player} accepts Truco!")
-                    else:
+                    if truco_response == "n":
                         print(f"{other_player} declines Truco. {player} wins the round!")
                         self.update_scores(self.current_player)
                         self.reset_round()
-                        self.current_player = self.lead_player
                         return
 
             if not self.envido_called:
@@ -265,35 +262,47 @@ class Game:
                     print(f"\n{player} calls Envido!")
                     envido_response = input(f"{other_player}, do you accept Envido? (y/n): ").lower()
                     if envido_response == "y":
-                        self.envido_accepted = True
-                        print(f"{other_player} accepts Envido!")
+                        player_envido_points = self.get_envido_points(self.current_player)
+                        other_player_envido_points = self.get_envido_points((self.current_player + 1) % NUM_PLAYERS)
+                        if player_envido_points > other_player_envido_points:
+                            print(f"{player} wins the Envido!")
+                            self.envido_value = player_envido_points
+                        elif other_player_envido_points > player_envido_points:
+                            print(f"{other_player} wins the Envido!")
+                            self.envido_value = other_player_envido_points
+                        else:
+                            print("Envido is a tie!")
                     else:
-                        print(f"{other_player} declines Envido. {player} wins the Envido!")
-                        player.envido_score += ENVIDO_POINTS
+                        print(f"{other_player} declines Envido.")
 
             if not self.flor_called:
                 flor_input = input("Do you want to call Flor? (y/n): ").lower()
                 if flor_input == "y":
                     self.flor_called = True
-                    other_player = self.players[(self.current_player + 1) % NUM_PLAYERS]
-                    print(f"\n{player} calls Flor!")
-                    flor_response = input(f"{other_player}, do you accept Flor? (y/n): ").lower()
-                    if flor_response == "y":
-                        self.flor_accepted = True
-                        print(f"{other_player} accepts Flor!")
+                    player_flor_points = self.get_flor_points(self.current_player)
+                    if player_flor_points > 0:
+                        print(f"\n{player} calls Flor!")
+                        other_player = self.players[(self.current_player + 1) % NUM_PLAYERS]
+                        flor_response = input(f"{other_player}, do you accept Flor? (y/n): ").lower()
+                        if flor_response == "y":
+                            other_player_flor_points = self.get_flor_points((self.current_player + 1) % NUM_PLAYERS)
+                            if player_flor_points > other_player_flor_points:
+                                print(f"{player} wins the Flor!")
+                                self.flor_value = player_flor_points
+                            elif other_player_flor_points > player_flor_points:
+                                print(f"{other_player} wins the Flor!")
+                                self.flor_value = other_player_flor_points
+                            else:
+                                print("Flor is a tie!")
+                        else:
+                            print(f"{other_player} declines Flor.")
                     else:
-                        print(f"{other_player} declines Flor. {player} wins the Flor!")
-                        player.flor_score += FLOR_POINTS
+                        print(f"{player} doesn't have a valid Flor.")
 
             if player.hand:
-                card_input = input("Choose a card to play (e.g., 4♠) or pass (p): ").strip()
-                if card_input == "p":
+                card_input = input("Choose a card to play (e.g., 4♠) or press Enter to pass: ").strip()
+                if card_input == "":
                     print(f"{player} passes.")
-                    if self.mazo_drawn:
-                        print("Both players passed. The round is a tie!")
-                        self.reset_round()
-                        return
-                    self.mazo_drawn = True
                 else:
                     try:
                         rank, suit = card_input[:-1], card_input[-1]
@@ -305,7 +314,7 @@ class Game:
                             print("Invalid card. Please choose a card from your hand.")
                             continue
                     except (IndexError, ValueError):
-                        print("Invalid input. Please enter a valid card (e.g., 4♠) or pass (p).")
+                        print("Invalid input. Please enter a valid card (e.g., 4♠) or press Enter to pass.")
                         continue
 
             winner = self.get_winner()
@@ -313,7 +322,6 @@ class Game:
                 self.update_scores(winner)
                 print(f"\nRound winner: {self.players[winner]}")
                 self.reset_round()
-                self.current_player = self.lead_player
                 return
 
             self.next_player()
@@ -327,9 +335,7 @@ class Game:
                 self.play_round()
             except GameOver as e:
                 print(f"\nGame over! {self.players[e.winner]} wins!")
-                print("Final scores:")
-                for player in self.players:
-                    print(f"{player}: {player.score} points (Envido: {player.envido_score}, Flor: {player.flor_score})")
+                print(f"Final scores: {self.players[0]}: {self.scores[0]} | {self.players[1]}: {self.scores[1]}")
                 break
 
 class GameOver(Exception):
